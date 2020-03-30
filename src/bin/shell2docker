@@ -19,7 +19,7 @@
 # limitations under the License.
 
 # Variables to be used in the configuration file
-_DOSH_KEYS="SCRIPTSFOLDER RUNSCRIPTS LOGFILE UNSAFEEXPAND CONF DEBUG RUNCOMMANDS VERBOSE CONTAINERIMAGE CONTAINERCOMMAND INHERIT DOCKERPARAMETERS PREFIXNAME SEARCHPREFIX"
+_DOSH_KEYS="SCRIPTSFOLDER RUNSCRIPTS LOGFILE UNSAFEEXPAND CONF DEBUG RUNCOMMANDS EXECCOMMANDS VERBOSE CONTAINERIMAGE CONTAINERCOMMAND INHERIT DOCKERPARAMETERS PREFIXNAME SEARCHPREFIX"
 _DOSH_INHERITABLE="DOCKERPARAMETERS"
 
 # Functions to output information depending on the configuration
@@ -177,8 +177,8 @@ function callscripts() {
 
 function searchcontainer() {
   PREFIXNAME="${PREFIXNAME:-dosh-}"
-  p_debug "executing:" docker ps --format "{{.Names}}" | grep "^${PREFIXNAME} | head -1"
-  CONTAINERNAME=$(docker ps --format "{{.Names}}" | grep "^${PREFIXNAME} | head -1")
+  p_debug "executing:" docker ps --format "{{.Names}}" | grep "^${PREFIXNAME}" | head -1
+  CONTAINERNAME=$(docker ps --format "{{.Names}}" | grep "^${PREFIXNAME}" | head -1)
   if [ -n "${CONTAINERNAME}"]; then
     return
   fi
@@ -201,6 +201,7 @@ GROUP="$(getent group $U_GID | cut -d: -f1)"
 
 # Set the default values
 RUNCOMMANDS=true
+EXECCOMMANDS=true
 CONTAINERIMAGE="alpine"
 CONTAINERCOMMAND="ash"
 DOCKERPARAMETERS=
@@ -229,6 +230,7 @@ CONTAINERCOMMAND=$CONTAINERCOMMAND
 DOCKERPARAMETERS=$DOCKERPARAMETERS
 INHERIT=$INHERIT
 RUNCOMMANDS=$RUNCOMMANDS
+EXECCOMMANDS=$EXECCOMMANDS
 VERBOSE=$VERBOSE
 SCRIPTSFOLDER=$SCRIPTSFOLDER
 LOGFILE=$LOGFILE
@@ -286,11 +288,11 @@ if [ "$TERM" != "dumb" -a "$TERM" != "unknown" ]; then
 fi
 
 CONTAINERCOMMAND=( "$CONTAINERCOMMAND" "$@" )
-if [ "$RUNCOMMANDS" == "true" ]; then
+if [ "$EXECCOMMANDS" == "true" ]; then
   callscripts preexec "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
   p_debug "executing: docker exec $TERMFLAGS $CONTAINERNAME ${CONTAINERCOMMAND[@]}"
   docker exec -i $TERMFLAGS "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
   callscripts exec "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
 else
-  p_info "docker commands are not being run because of configuration (var RUNCOMMANDS is not set to true)"
+  p_info "docker exec commands are not being run because of configuration (var EXECCOMMANDS is not set to true)"
 fi
