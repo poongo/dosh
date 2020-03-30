@@ -179,7 +179,7 @@ function searchcontainer() {
   PREFIXNAME="${PREFIXNAME:-dosh-}"
   p_debug "executing:" docker ps --format "{{.Names}}" | grep "^${PREFIXNAME}" | head -1
   CONTAINERNAME=$(docker ps --format "{{.Names}}" | grep "^${PREFIXNAME}" | head -1)
-  if [ -n "${CONTAINERNAME}"]; then
+  if [ -n "${CONTAINERNAME}" ]; then
     return
   fi
   CONTAINERNAME="${PREFIXNAME}${USERNAME}"
