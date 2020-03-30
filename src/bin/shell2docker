@@ -19,7 +19,7 @@
 # limitations under the License.
 
 # Variables to be used in the configuration file
-_DOSH_KEYS="SCRIPTSFOLDER RUNSCRIPTS LOGFILE UNSAFEEXPAND CONF DEBUG RUNCOMMANDS VERBOSE CONTAINERIMAGE CONTAINERCOMMAND INHERIT DOCKERPARAMETERS PREFIXNAME"
+_DOSH_KEYS="SCRIPTSFOLDER RUNSCRIPTS LOGFILE UNSAFEEXPAND CONF DEBUG RUNCOMMANDS VERBOSE CONTAINERIMAGE CONTAINERCOMMAND INHERIT DOCKERPARAMETERS PREFIXNAME SEARCHPREFIX"
 _DOSH_INHERITABLE="DOCKERPARAMETERS"
 
 # Functions to output information depending on the configuration
@@ -175,6 +175,16 @@ function callscripts() {
   fi
 }
 
+function searchcontainer() {
+  PREFIXNAME="${PREFIXNAME:-dosh-}"
+  p_debug "executing:" docker ps --format "{{.Names}}" | grep "^${PREFIXNAME} | head -1"
+  CONTAINERNAME=$(docker ps --format "{{.Names}}" | grep "^${PREFIXNAME} | head -1")
+  if [ -n "${CONTAINERNAME}"]; then
+    return
+  fi
+  CONTAINERNAME="${PREFIXNAME}${USERNAME}"
+}
+
 # Get the user that issued the command (even if ran from SUDO)
 if [ $SUDO_USER ]; then USERNAME=$SUDO_USER; else USERNAME="$(whoami)"; fi
 
@@ -204,7 +214,7 @@ RUNSCRIPTS=false
 readconffiles "/etc/dosh.conf"
 
 # Set the name of the container for the user
-CONTAINERNAME="${PREFIXNAME:-dosh-}${USERNAME}"
+searchcontainer
 
 # Output variables for debug
 p_debug "Variables
