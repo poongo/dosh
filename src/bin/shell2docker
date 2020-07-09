@@ -287,7 +287,7 @@ if [ "$TERM" != "dumb" -a "$TERM" != "unknown" ]; then
   TERMFLAGS=-t
 fi
 
-ENVFLAGS=" -e USER=${USER} -e GROUP=\"${GROUPNAMES}\" "
+ENVFLAGS=' -e USER=${USER} -e GROUP=\"${GROUPNAMES}\" '
 
 CONTAINERCOMMAND=( "$CONTAINERCOMMAND" "$@" )
 if [ "$EXECCOMMANDS" == "true" ]; then
