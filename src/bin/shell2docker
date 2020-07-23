@@ -292,8 +292,8 @@ ENVFLAGS=" -e USER=${USER} -e GROUP=\"${GROUPNAMES}\" "
 CONTAINERCOMMAND=( "$CONTAINERCOMMAND" "$@" )
 if [ "$EXECCOMMANDS" == "true" ]; then
   callscripts preexec "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
-  p_debug "executing: docker exec $ENVFLAGS $TERMFLAGS $CONTAINERNAME ${CONTAINERCOMMAND[@]}"
-  docker exec -i $ENVFLAGS $TERMFLAGS "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
+  p_debug "executing: docker exec -i -e USER=${USER} -e GROUP=\"${GROUPNAMES}\" $TERMFLAGS $CONTAINERNAME ${CONTAINERCOMMAND[@]}"
+  docker exec -i -e USER=${USER} -e GROUP="${GROUPNAMES}" $TERMFLAGS "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
   callscripts exec "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
 else
   p_info "docker exec commands are not being run because of configuration (var EXECCOMMANDS is not set to true)"
