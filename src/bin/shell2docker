@@ -185,6 +185,12 @@ function searchcontainer() {
   CONTAINERNAME="${PREFIXNAME}${USERNAME}"
 }
 
+random-string()
+{
+  cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w ${1:-32} | head -n 1
+}
+
+
 # Get the user that issued the command (even if ran from SUDO)
 if [ $SUDO_USER ]; then USERNAME=$SUDO_USER; else USERNAME="$(whoami)"; fi
 
@@ -235,6 +241,9 @@ VERBOSE=$VERBOSE
 SCRIPTSFOLDER=$SCRIPTSFOLDER
 LOGFILE=$LOGFILE
 RUNSCRIPTS=$RUNSCRIPTS"
+
+UNIQUEID=$(random-string 10)
+PROCESSNAME=${CONTAINERCOMMAND}_${UNIQUEID}
 
 # Check if the container for the user is running
 RUNNING="$(docker inspect -f "{{.State.Running}}" "$CONTAINERNAME" 2> /dev/null)"
@@ -293,7 +302,8 @@ CONTAINERCOMMAND=( "$CONTAINERCOMMAND" "$@" )
 if [ "$EXECCOMMANDS" == "true" ]; then
   callscripts preexec "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
   p_debug "executing: docker exec -i -e USER=${USER} -e GROUP=\"${GROUPNAMES}\" $TERMFLAGS $CONTAINERNAME ${CONTAINERCOMMAND[@]}"
-  docker exec -i -e USER=${USER} -e GROUP="${GROUPNAMES}" $TERMFLAGS "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
+  trap "docker exec $CONTAINERNAME pkill -9 -f $UNIQUEID" EXIT
+  docker exec -i -e USER=${USER} -e GROUP="${GROUPNAMES}" $TERMFLAGS "$CONTAINERNAME"  bash -c "exec -a $PROCESSNAME ${CONTAINERCOMMAND[@]}"
   callscripts exec "$CONTAINERNAME" "${CONTAINERCOMMAND[@]}"
 else
   p_info "docker exec commands are not being run because of configuration (var EXECCOMMANDS is not set to true)"
